@@ -5,7 +5,7 @@ A super simple FastAPI application that allows students to view and sign up
 for extracurricular activities at Mergington High School.
 """
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Query
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import RedirectResponse
 import os
@@ -15,7 +15,6 @@ app = FastAPI(title="Mergington High School API",
               description="API for viewing and signing up for extracurricular activities")
 
 # Mount the static files directory
-current_dir = Path(__file__).parent
 app.mount("/static", StaticFiles(directory=os.path.join(Path(__file__).parent,
           "static")), name="static")
 
@@ -26,37 +25,37 @@ activities = {
         "schedule": "Mondays and Wednesdays, 4:00 PM - 5:30 PM",
         "max_participants": 15,
         "participants": ["alex@mergington.edu"]
-        },
-        "Tennis Club": {
+    },
+    "Tennis Club": {
         "description": "Learn tennis techniques and participate in friendly matches",
         "schedule": "Tuesdays and Thursdays, 3:30 PM - 5:00 PM",
         "max_participants": 10,
         "participants": ["sarah@mergington.edu"]
-        },
-        "Drama Club": {
+    },
+    "Drama Club": {
         "description": "Perform in theatrical productions and develop acting skills",
         "schedule": "Wednesdays, 3:30 PM - 5:00 PM",
         "max_participants": 25,
         "participants": ["lucas@mergington.edu", "emma@mergington.edu"]
-        },
-        "Art Studio": {
+    },
+    "Art Studio": {
         "description": "Explore painting, drawing, and various visual art mediums",
         "schedule": "Mondays and Fridays, 3:30 PM - 4:45 PM",
         "max_participants": 18,
         "participants": ["grace@mergington.edu"]
-        },
-        "Science Olympiad": {
+    },
+    "Science Olympiad": {
         "description": "Compete in science competitions and conduct research projects",
         "schedule": "Thursdays, 3:45 PM - 5:15 PM",
         "max_participants": 16,
         "participants": ["james@mergington.edu", "sophia@mergington.edu"]
-        },
-        "Robotics Club": {
+    },
+    "Robotics Club": {
         "description": "Build and program robots for competitions and challenges",
         "schedule": "Tuesdays and Saturdays, 2:00 PM - 4:00 PM",
         "max_participants": 14,
         "participants": ["marcus@mergington.edu"]
-        },
+    },
     "Chess Club": {
         "description": "Learn strategies and compete in chess tournaments",
         "schedule": "Fridays, 3:30 PM - 5:00 PM",
@@ -89,7 +88,7 @@ def get_activities():
 
 
 @app.post("/activities/{activity_name}/signup")
-def signup_for_activity(activity_name: str, email: str):
+def signup_for_activity(activity_name: str, email: str = Query(...)):
     """Sign up a student for an activity"""
     # Validate activity exists
     if activity_name not in activities:
@@ -101,6 +100,10 @@ def signup_for_activity(activity_name: str, email: str):
     # Validate student is not already signed up
     if email in activity["participants"]:
         raise HTTPException(status_code=400, detail="Student already signed up")
+
+    # Validate activity is not full
+    if len(activity["participants"]) >= activity["max_participants"]:
+        raise HTTPException(status_code=400, detail="Activity is full")
 
     # Add student
     activity["participants"].append(email)
