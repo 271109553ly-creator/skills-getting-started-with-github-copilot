@@ -113,6 +113,7 @@ document.addEventListener("DOMContentLoaded", () => {
         messageDiv.textContent = result.message;
         messageDiv.className = "success";
         signupForm.reset();
+        fetchActivities(); // 注册成功后刷新活动列表
       } else {
         messageDiv.textContent = result.detail || "An error occurred";
         messageDiv.className = "error";
